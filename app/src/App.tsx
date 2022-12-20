@@ -12,6 +12,8 @@ import {
 import { ColorModeSwitcher } from "./ColorModeSwitcher"
 import { Logo } from "./Logo"
 
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 export const App = () => (
   <ChakraProvider theme={theme}>
     <Box textAlign="center" fontSize="xl">
@@ -31,6 +33,7 @@ export const App = () => (
           >
             Learn Chakra
           </Link>
+          <ConnectButton />
         </VStack>
       </Grid>
     </Box>
