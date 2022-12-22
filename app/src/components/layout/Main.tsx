@@ -8,15 +8,13 @@ import {
 	Flex,
 	HStack,
 	VStack,
-	Icon,
-	FormControl,
-	FormLabel,
-	Input,
+	Heading,
 	useColorModeValue,
 	Link,
 	Drawer,
 	DrawerContent,
 	Button,
+	Tag,
 	Text,
 	useDisclosure,
 	BoxProps,
@@ -26,13 +24,6 @@ import {
 	MenuDivider,
 	MenuItem,
 	MenuList,
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalHeader,
-	ModalFooter,
-	ModalBody,
-	ModalCloseButton,
 } from '@chakra-ui/react';
 import {
 	FiHome,
@@ -45,11 +36,21 @@ import {
 	FiChevronDown,
 } from 'react-icons/fi';
 import { IconType } from 'react-icons';
-import { ReactText } from 'react';
 import { UserAuth } from '../../context/AuthContext';
+import { useAccount } from 'wagmi';
 
 import config from '../../build/contracts/Nexus.json';
 import { useContractRead } from 'wagmi';
+import { ColorModeSwitcher } from '../../ColorModeSwitcher';
+import { DeleteIcon } from '@chakra-ui/icons';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+
+import Footer from '../home/Footer';
+import { ethers } from 'ethers';
+import ConfirmDeleteProfile from '../modals/ConfirmDeleteProfile';
+import WalletOptions from '../modals/WalletOptions';
+import { tempPhoneNumber } from '../../constants';
+import sha256 from 'crypto-js/sha256';
 
 interface LinkItemProps {
 	name: string;
@@ -88,6 +89,7 @@ export default function Main({ children }: { children: ReactNode }) {
 			<MobileNav onOpen={onOpen} />
 			<Box ml={{ base: 0, md: 60 }} p="4">
 				{children}
+				{/* <Footer /> */}
 			</Box>
 		</Box>
 	);
@@ -98,20 +100,21 @@ interface SidebarProps extends BoxProps {
 }
 
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
+	// Hooks
 	const { isOpen, onOpen, onClose: _onClose } = useDisclosure();
+	const { isConnected } = useAccount();
 
-	const { data, isError, isLoading }: any = useContractRead({
-		address: '0xCf81F51D7C6D1F1983C11F6749c100c862A3482e',
+	// Smart Contract
+	const {
+		data: wallets,
+		isError,
+		isLoading,
+	}: any = useContractRead({
+		address: config.address,
 		abi: config.abi,
 		functionName: 'getWallets',
-		args: [
-			'0x1e67fc6860000000000000000000000000000000000000000000000000000000',
-		],
+		args: ['0x' + sha256(tempPhoneNumber).toString()],
 	});
-
-	const updateWallet = () => {};
-
-	const deleteWallet = () => {};
 
 	return (
 		<Box
@@ -137,60 +140,55 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
 				/>
 			</Flex>
 
-			{!isError && !isLoading && data && (
+			{wallets !== undefined ? (
 				<>
-					{data.map((wallet: any) => {
-						return (
-							<NavItem
-								key={wallet.address}
-								provider={wallet.provider}
-								name={wallet.name}
-								address={wallet._address}
-								onClick={onOpen}
-							/>
-						);
-					})}
+					{isConnected && (
+						<>
+							<Heading
+								as="h2"
+								size="sm"
+								mt={6}
+								mb={2}
+								style={{ textAlign: 'center' }}
+							>
+								Connected wallets (
+								{isConnected ? wallets.length : '0'})
+							</Heading>
 
-					<Modal isOpen={isOpen} onClose={_onClose}>
-						<ModalOverlay />
-						<ModalContent>
-							<ModalHeader>Manage your wallet</ModalHeader>
-							<ModalCloseButton />
-							<ModalBody pb={6}>
-								{/* Name */}
-								<FormControl id="name">
-									<FormLabel>Name</FormLabel>
-									<Input type="name" placeholder={''} />
-								</FormControl>
-
-								{/* Description */}
-								<FormControl id="description" mt={4}>
-									<FormLabel>Description</FormLabel>
-									<Input
-										type="description"
-										placeholder={''}
-									/>
-								</FormControl>
-							</ModalBody>
-
-							<ModalFooter>
-								<Button
-									colorScheme="blue"
-									mr={3}
-									onClick={updateWallet}
-								>
-									Update
-								</Button>
-								<Button
-									colorScheme="red"
-									onClick={deleteWallet}
-								>
-									Delete
-								</Button>
-							</ModalFooter>
-						</ModalContent>
-					</Modal>
+							{!isError && !isLoading && wallets && (
+								<>
+									{wallets.map(
+										(wallet: any, index: number) => {
+											return (
+												<div key={index}>
+													<div onClick={onOpen}>
+														<NavItem
+															provider={
+																wallet.provider
+															}
+															name={wallet.name}
+															address={
+																wallet._address
+															}
+														/>
+													</div>
+													<WalletOptions
+														isOpen={isOpen}
+														wallet={wallet}
+														walletIndex={index}
+														onClose={_onClose}
+													/>
+												</div>
+											);
+										}
+									)}
+								</>
+							)}
+						</>
+					)}
 				</>
+			) : (
+				<p>none</p>
 			)}
 		</Box>
 	);
@@ -241,6 +239,18 @@ interface MobileProps extends FlexProps {
 }
 const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 	const { user, logOut } = UserAuth();
+	// Hooks
+	const { isConnected } = useAccount();
+	const {
+		isOpen: isConfirmDeleteOpen,
+		onOpen: onConfirmDeleteOpen,
+		onClose: onConfirmDeleteClose,
+	} = useDisclosure();
+
+	const PNF = require('google-libphonenumber').PhoneNumberFormat;
+	const phoneUtil =
+		require('google-libphonenumber').PhoneNumberUtil.getInstance();
+	const number = phoneUtil.parseAndKeepRawInput(tempPhoneNumber, 'US');
 
 	return (
 		<Flex
@@ -254,6 +264,14 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 			justifyContent={{ base: 'space-between', md: 'flex-end' }}
 			{...rest}
 		>
+			<div
+				style={{
+					marginRight: '2rem',
+				}}
+			>
+				<ConnectButton />
+			</div>
+
 			<IconButton
 				display={{ base: 'flex', md: 'none' }}
 				onClick={onOpen}
@@ -299,15 +317,39 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 								'gray.700'
 							)}
 						>
-							{/* <MenuItem>Profile</MenuItem>
-							<MenuItem>Settings</MenuItem>
-							<MenuItem>Billing</MenuItem> */}
-							{/* <MenuDivider /> */}
+							<MenuItem>
+								{phoneUtil.format(number, PNF.INTERNATIONAL)}
+							</MenuItem>
+
+							<MenuDivider />
+
+							<ColorModeSwitcher justifySelf="flex-end" />
+
+							{isConnected && (
+								<Button
+									variant={'solid'}
+									colorScheme={'red'}
+									size={'sm'}
+									mr={4}
+									leftIcon={<DeleteIcon />}
+									onClick={onConfirmDeleteOpen}
+								>
+									Delete profile
+								</Button>
+							)}
+
+							<MenuDivider />
+
 							<MenuItem onClick={logOut}>Sign out</MenuItem>
 						</MenuList>
 					</Menu>
 				</Flex>
 			</HStack>
+
+			<ConfirmDeleteProfile
+				isOpen={isConfirmDeleteOpen}
+				onClose={onConfirmDeleteClose}
+			/>
 		</Flex>
 	);
 };

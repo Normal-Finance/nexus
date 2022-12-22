@@ -40,7 +40,7 @@ export const AuthContextProvider = ({ children }) => {
 		setupReCaptcha();
 
 		const appVerifier = window.recaptchaVerifier;
-		console.log(appVerifier);
+
 		signInWithPhoneNumber(auth, phoneNumber, appVerifier)
 			.then((confirmationResult) => {
 				console.log(confirmationResult);

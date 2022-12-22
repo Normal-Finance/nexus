@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
 	Box,
 	Stack,
@@ -6,53 +6,76 @@ import {
 	FormControl,
 	FormLabel,
 	Input,
-	Avatar,
 	HStack,
+	Text,
 	Select,
-	FormHelperText,
 	FormErrorMessage,
 	useColorModeValue,
 } from '@chakra-ui/react';
-import {
-	useAccount,
-	useNetwork,
-	useConnect,
-	useDisconnect,
-	useEnsAvatar,
-	useEnsName,
-} from 'wagmi';
-import { chains, providers } from '../../constants';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount } from 'wagmi';
+import { chains, providers, tempPhoneNumber } from '../../constants';
 
-import { useContractWrite, usePrepareContractWrite } from 'wagmi';
+import {
+	useContractRead,
+	useContractWrite,
+	useWaitForTransaction,
+} from 'wagmi';
 import config from '../../build/contracts/Nexus.json';
 
 import { Field, Form, Formik } from 'formik';
+import sha256 from 'crypto-js/sha256';
 
 const WalletConnectors = () => {
-	const { address, connector, isConnected } = useAccount();
-	const { chain, chains } = useNetwork();
-	const { data: ensName } = useEnsName({ address });
-	const { connect, connectors, error, isLoading, pendingConnector } =
-		useConnect();
-	const { disconnect } = useDisconnect();
+	// Smart Contract
+	const {
+		data: wallets,
+		isError,
+		isLoading,
+	} = useContractRead({
+		address: config.address,
+		abi: config.abi,
+		functionName: 'getWallets',
+		args: ['0x' + sha256(tempPhoneNumber).toString()],
+	});
 
-	const { config: _config, error: _error } = usePrepareContractWrite({
+	const {
+		data: createProfileData,
+		write: createProfile,
+		isLoading: isCreateProfileLoading,
+		isSuccess: isCreateProfileStarted,
+	} = useContractWrite({
+		mode: 'recklesslyUnprepared',
 		address: config.address,
 		abi: config.abi,
 		functionName: 'createProfile',
-		args: [
-			'0x1e67fc6860000000000000000000000000000000000000000000000000000000',
-			'0x7D504D497b0ca5386F640aDeA2bb86441462d109',
-			'Name',
-			'Desc',
-			'MetaMask',
-			'Ethereum',
-		],
 	});
-	console.log(_config, _error);
-	const { write: addWallet, isSuccess } = useContractWrite(_config);
 
+	const { isSuccess: createProfileTxSuccess } = useWaitForTransaction({
+		hash: createProfileData?.data,
+	});
+
+	const {
+		data: insertWalletData,
+		write: insertWallet,
+		isLoading: isInsertWalletLoading,
+		isSuccess: isInsertWalletStarted,
+	} = useContractWrite({
+		mode: 'recklesslyUnprepared',
+		address: config.address,
+		abi: config.abi,
+		functionName: 'insertWallet',
+	});
+
+	const { isSuccess: insertWalletTxSuccess } = useWaitForTransaction({
+		hash: insertWalletData?.data,
+	});
+
+	useEffect(() => {
+		if (createProfileTxSuccess || insertWalletTxSuccess)
+			window.location.reload();
+	}, [createProfileTxSuccess, insertWalletTxSuccess]);
+
+	// Validation
 	function validateField(value) {
 		let error;
 		if (!value) {
@@ -62,39 +85,49 @@ const WalletConnectors = () => {
 	}
 
 	return (
-		<>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-				}}
-			>
-				<ConnectButton />
-			</div>
-
-			<Box
-				rounded={'lg'}
-				bg={useColorModeValue('white', 'gray.700')}
-				boxShadow={'lg'}
-				p={8}
-			>
-				<Stack spacing={4}>
+		<Box
+			rounded={'lg'}
+			bg={useColorModeValue('white', 'gray.700')}
+			boxShadow={'lg'}
+			p={8}
+		>
+			<Stack spacing={4}>
+				{wallets !== undefined ? (
 					<Formik
 						initialValues={{
-							address: isConnected ? address : '',
-							name: isConnected && ensName ? address : '',
+							address: '',
+							name: '',
 							description: '',
-							provider:
-								isConnected && connector
-									? connector.name.toLowerCase()
-									: '',
-							chain: isConnected ? chain?.name : '',
+							provider: '',
+							chain: '',
 						}}
 						onSubmit={async (values, actions) => {
-							// write();
-							await addWallet?.();
-							// const res = await writeAsync(values.address, values.name)
-							console.log(values);
+							if (wallets.length === 0) {
+								await createProfile?.({
+									recklesslySetUnpreparedArgs: [
+										'0x' +
+											sha256(tempPhoneNumber).toString(),
+										values.address,
+										values.name,
+										values.description,
+										values.provider,
+										values.chain,
+									],
+								});
+							} else {
+								await insertWallet?.({
+									recklesslySetUnpreparedArgs: [
+										'0x' +
+											sha256(tempPhoneNumber).toString(),
+										values.address,
+										values.name,
+										values.description,
+										values.provider,
+										values.chain,
+									],
+								});
+							}
+
 							actions.setSubmitting(false);
 						}}
 					>
@@ -110,9 +143,7 @@ const WalletConnectors = () => {
 											}
 											isRequired
 										>
-											<FormLabel>
-												Wallet Address
-											</FormLabel>
+											<FormLabel>Address</FormLabel>
 											<Input {...field} />
 											<FormErrorMessage>
 												{form.errors.address}
@@ -242,33 +273,98 @@ const WalletConnectors = () => {
 								</HStack>
 
 								<Stack spacing={10} pt={2}>
-									<Button
-										mt={4}
-										loadingText="Submitting"
-										size="lg"
-										bgGradient="linear(to-r, red.400,pink.400)"
-										color={'white'}
-										_hover={{
-											bgGradient:
-												'linear(to-r, red.400,pink.400)',
-											boxShadow: 'xl',
-										}}
-										isLoading={props.isSubmitting}
-										type="submit"
-										// disabled={!write}
-										// onClick={() => write?.()}
-									>
-										Submit
-									</Button>
-
-									{error && <div>{error.message}</div>}
+									{wallets.length === 0 ? (
+										<>
+											<Button
+												mt={4}
+												size="lg"
+												bgGradient="linear(to-r, red.400,pink.400)"
+												color={'white'}
+												_hover={{
+													bgGradient:
+														'linear(to-r, red.400,pink.400)',
+													boxShadow: 'xl',
+												}}
+												loadingText={
+													<>
+														{isInsertWalletLoading &&
+															'Waiting for approval'}
+														{isInsertWalletStarted &&
+															'Creating profile...'}
+													</>
+												}
+												isLoading={
+													isCreateProfileLoading ||
+													isCreateProfileStarted
+												}
+												type="submit"
+												disabled={
+													!createProfile ||
+													isCreateProfileLoading ||
+													isCreateProfileStarted
+												}
+											>
+												{isCreateProfileLoading &&
+													'Waiting for approval'}
+												{isCreateProfileStarted &&
+													'Creating profile...'}
+												{!isCreateProfileLoading &&
+													!isCreateProfileStarted &&
+													'Create profile'}
+											</Button>
+											<Text align={'center'}>
+												Add your first wallet to create
+												your public profile
+											</Text>
+										</>
+									) : (
+										<Button
+											mt={4}
+											size="lg"
+											bgGradient="linear(to-r, red.400,pink.400)"
+											color={'white'}
+											_hover={{
+												bgGradient:
+													'linear(to-r, red.400,pink.400)',
+												boxShadow: 'xl',
+											}}
+											loadingText={
+												<>
+													{isInsertWalletLoading &&
+														'Waiting for approval'}
+													{isInsertWalletStarted &&
+														'Adding wallet...'}
+												</>
+											}
+											isLoading={
+												isInsertWalletLoading ||
+												isInsertWalletStarted
+											}
+											type="submit"
+											disabled={
+												!insertWallet ||
+												isInsertWalletLoading ||
+												isInsertWalletStarted
+											}
+										>
+											{isInsertWalletLoading &&
+												'Waiting for approval'}
+											{isInsertWalletStarted &&
+												'Adding wallet...'}
+											{!isInsertWalletLoading &&
+												!isInsertWalletStarted &&
+												'Submit'}
+										</Button>
+									)}
 								</Stack>
 							</Form>
 						)}
 					</Formik>
-				</Stack>
-			</Box>
-		</>
+				) : (
+					<p>NOne</p>
+				)}
+			</Stack>
+		</Box>
 	);
 };
 

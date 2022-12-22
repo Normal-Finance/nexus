@@ -19,7 +19,11 @@ root.render(
 	<React.StrictMode>
 		<AuthContextProvider>
 			<WagmiConfig client={wagmiClient}>
-				<RainbowKitProvider coolMode chains={chains}>
+				<RainbowKitProvider
+					modalSize="compact"
+					coolMode
+					chains={chains}
+				>
 					<ColorModeScript />
 					<App />
 				</RainbowKitProvider>

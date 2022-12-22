@@ -1,65 +1,83 @@
+export const tempPhoneNumber = '+1816s2100870';
+
 export const providers = [
 	{
-		value: 'metamask',
+		value: '',
+		name: '---',
+	},
+	{
+		value: 'Metamask',
 		name: 'MetaMask',
 	},
 	{
-		value: 'coinbase',
+		value: 'Coinbase',
 		name: 'Coinbase',
 	},
 	{
-		value: 'walletconnect',
+		value: 'WalletConnect',
 		name: 'WalletConnect',
 	},
 	{
-		value: 'trustwallet',
+		value: 'TrustWallet',
 		name: 'Trust Wallet',
 	},
 	{
-		value: 'phantom',
-		name: 'Phantom',
+		value: 'Ledger',
+		name: 'Ledger',
 	},
 	{
-		value: 'exodus',
+		value: 'Argent',
+		name: 'Argent',
+	},
+	{
+		value: 'Exodus',
 		name: 'Exodus',
+	},
+	{
+		value: 'other',
+		name: 'Other',
 	},
 ];
 
 export const chains = [
 	{
-		value: 'bitcoin',
-		name: 'Bitcoin',
+		value: '',
+		name: '---',
 	},
 	{
-		value: 'ethereum',
+		value: 'Ethereum',
 		name: 'Ethereum',
 	},
 	{
-		value: 'litecoin',
-		name: 'LiteCoin',
-	},
-	{
-		value: 'solana',
-		name: 'Solana',
-	},
-	{
-		value: 'polygon',
+		value: 'Polygon',
 		name: 'Polygon',
 	},
 	{
-		value: 'fantom',
-		name: 'Fantom',
+		value: 'Avalanche',
+		name: 'Avalanche',
 	},
 	{
-		value: 'arbitrum',
-		name: 'Arbitrum',
+		value: 'Arbitrum',
+		name: 'Arbitrum One',
 	},
 	{
-		value: 'optimism',
+		value: 'Optimism',
 		name: 'Optimism',
 	},
 	{
-		value: 'binance',
+		value: 'Celo',
+		name: 'Celo',
+	},
+	{
+		value: 'Fantom',
+		name: 'Fantom',
+	},
+	{
+		value: 'Binance',
 		name: 'Binance Smart Chain',
+	},
+	{
+		value: 'other',
+		name: 'Other',
 	},
 ];

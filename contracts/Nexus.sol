@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Tells the Solidity compiler to compile only from v0.8.13 to v0.9.0
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.3;
 
 contract Nexus {
     /* ========== DATA STRUCTURES ========== */
@@ -98,14 +97,10 @@ contract Nexus {
         bytes32 hash,
         uint256 index,
         string memory name,
-        string memory description,
-        string memory provider,
-        string memory chain
+        string memory description
     ) public returns (Wallet memory wallet) {
         profiles[hash].wallets[index].name = name;
         profiles[hash].wallets[index].description = description;
-        profiles[hash].wallets[index].provider = provider;
-        profiles[hash].wallets[index].chain = chain;
 
         return profiles[hash].wallets[index];
     }

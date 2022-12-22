@@ -6,7 +6,7 @@ const Header = () => {
 		<Stack align={'center'}>
 			<Heading fontSize={'4xl'}>Connect your wallets</Heading>
 			<Text fontSize={'lg'} color={'gray.600'}>
-				with all the benefits of Normal ✌️
+				with the global Nexus network ✌️
 			</Text>
 		</Stack>
 	);

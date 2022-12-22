@@ -1,6 +1,17 @@
 // Modules
 import React from 'react';
-import { Button, Center, Text, Box, Grid, VStack } from '@chakra-ui/react';
+import {
+	Flex,
+	Button,
+	Center,
+	Text,
+	Box,
+	Grid,
+	VStack,
+	Stack,
+	Heading,
+	useColorModeValue,
+} from '@chakra-ui/react';
 import { UserAuth } from '../context/AuthContext';
 import { FcGoogle } from 'react-icons/fc';
 import { ColorModeSwitcher } from '../ColorModeSwitcher';
@@ -48,36 +59,62 @@ const Signin = () => {
 	};
 
 	return (
-		<Box textAlign="center" fontSize="xl">
-			<Grid minH="100vh" p={3}>
-				<ColorModeSwitcher justifySelf="flex-end" />
-				<VStack spacing={8}>
-					<Button
-						variant={'outline'}
-						leftIcon={<FcGoogle />}
-						onClick={handleGoogleSignIn}
+		<Flex
+			minH={'100vh'}
+			align={'center'}
+			justify={'center'}
+			bg={useColorModeValue('gray.50', 'gray.800')}
+		>
+			<Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
+				<Stack align={'center'}>
+					<Heading fontSize={'4xl'}>Sign in to Nexus by</Heading>
+					<Heading
+						fontSize={'4xl'}
+						bgGradient="linear(to-l, #7928CA, #FF0080)"
+						bgClip="text"
 					>
-						<Center>
-							<Text>Sign in with Google</Text>
-						</Center>
-					</Button>
+						Normal
+					</Heading>
+					<Text fontSize={'lg'} color={'gray.600'}>
+						to connect your wallets with the world 🌎
+					</Text>
+				</Stack>
+				<Box
+					rounded={'lg'}
+					bg={useColorModeValue('white', 'gray.700')}
+					boxShadow={'lg'}
+					p={8}
+				>
+					<Stack spacing={4}>
+						<Stack spacing={10}>
+							<Button
+								variant={'outline'}
+								leftIcon={<FcGoogle />}
+								onClick={handleGoogleSignIn}
+							>
+								<Center>
+									<Text>Sign in with Google</Text>
+								</Center>
+							</Button>
 
-					{phoneNumberView === 'submit' && (
-						<Submit
-							phoneNumber={phoneNumber}
-							handleChange={handlePhoneNumberChange}
-							onSubmit={handlePhoneNumberSubmit}
-						/>
-					)}
-					{phoneNumberView === 'verify' && (
-						<Verify
-							phoneNumber={phoneNumber}
-							onSubmit={handlePhoneNumberVerify}
-						/>
-					)}
-				</VStack>
-			</Grid>
-		</Box>
+							{phoneNumberView === 'submit' && (
+								<Submit
+									phoneNumber={phoneNumber}
+									handleChange={handlePhoneNumberChange}
+									onSubmit={handlePhoneNumberSubmit}
+								/>
+							)}
+							{phoneNumberView === 'verify' && (
+								<Verify
+									phoneNumber={phoneNumber}
+									onSubmit={handlePhoneNumberVerify}
+								/>
+							)}
+						</Stack>
+					</Stack>
+				</Box>
+			</Stack>
+		</Flex>
 	);
 };
 
