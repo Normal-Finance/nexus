@@ -6,7 +6,7 @@ import "./Authorizer.sol";
 contract Nexus {
     /* ========== DATA STRUCTURES ========== */
     struct Wallet {
-        address _address;
+        string _address;
         string name;
         string description;
         string provider;
@@ -42,11 +42,11 @@ contract Nexus {
 
     event ProfileDeleteEvent(bytes32 indexed hash);
 
-    event WalletCreateEvent(bytes32 indexed hash, address _address);
+    event WalletCreateEvent(bytes32 indexed hash, string _address);
 
-    event WalletUpdateEvent(bytes32 indexed hash, address _address);
+    event WalletUpdateEvent(bytes32 indexed hash, string _address);
 
-    event WalletDeleteEvent(bytes32 indexed hash, address _address);
+    event WalletDeleteEvent(bytes32 indexed hash, string _address);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -66,7 +66,7 @@ contract Nexus {
 
     function createProfileWithWallet(
         bytes32 hash,
-        address _address,
+        string memory _address,
         string memory name,
         string memory description,
         string memory provider,
@@ -95,7 +95,7 @@ contract Nexus {
     // WALLET
     function insertWallet(
         bytes32 hash,
-        address _address,
+        string memory _address,
         string memory name,
         string memory description,
         string memory provider,
@@ -147,7 +147,7 @@ contract Nexus {
         onlyAuthorized(hash)
         returns (bool success)
     {
-        address deletedAddress = profiles[hash].wallets[index]._address;
+        string memory deletedAddress = profiles[hash].wallets[index]._address;
         delete profiles[hash].wallets[index];
 
         emit WalletDeleteEvent(hash, deletedAddress);
