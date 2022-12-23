@@ -1,4 +1,5 @@
-import React from 'react';
+// Modules
+import { useEffect } from 'react';
 import {
 	InputGroup,
 	InputLeftElement,
@@ -20,25 +21,51 @@ import {
 	Code,
 	Divider,
 } from '@chakra-ui/react';
-import { SearchIcon } from '@chakra-ui/icons';
-import config from '../../build/contracts/Nexus.json';
-import { useContractRead } from 'wagmi';
-import { CopyIcon } from '@chakra-ui/icons';
-import sha256 from 'crypto-js/sha256';
+
+// Icons
+import { SearchIcon, CopyIcon } from '@chakra-ui/icons';
+
+// Hooks
+import { useContract } from '../../contexts/ContractContext';
 
 const Search = ({ value, handleChange }) => {
-	// Smart Contract
-	const {
-		data: wallets,
-		isError,
-		isLoading,
-	} = useContractRead({
-		address: config.address,
-		abi: config.abi,
-		functionName: 'getWallets',
-		args: ['0x' + sha256(value).toString()],
-	});
-	console.log(sha256(value).toString());
+	// Hooks
+	const { getWallets } = useContract();
+
+	// Validation
+	function validateEmail(value) {
+		if (!value) {
+			return false;
+		} else if (
+			!value
+				.toLowerCase()
+				.match(
+					/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+				)
+		) {
+			return false;
+		}
+		return true;
+	}
+
+	useEffect(() => {
+		if (validateEmail(value)) {
+			try {
+				const url = `${process.env.REACT_APP_NEXUS_API_PATH}/user/hash?email=${value}`;
+				const requestOptions = {
+					method: 'GET',
+					headers: {
+						'x-api-key': process.env.REACT_APP_NEXUS_API_KEY,
+					},
+				};
+				fetch(url, requestOptions).then((response) => {
+					console.log(response.json());
+				});
+			} catch (error) {
+				console.log('error', error);
+			}
+		}
+	}, [value]);
 
 	const sendInvite = () => {};
 
@@ -66,17 +93,19 @@ const Search = ({ value, handleChange }) => {
 			</InputGroup>
 
 			{/* Results */}
-			{value !== '' && !isError && !isLoading && wallets && (
+			{value !== '' && !getWallets.loading && getWallets.data && (
 				<Card
 					variant={'elevated'}
 					style={{ marginTop: '2rem', backgroundColor: 'white' }}
 				>
 					<CardHeader>
-						<Heading size="md">Results ({wallets.length})</Heading>
+						<Heading size="md">
+							Results ({getWallets.data.length})
+						</Heading>
 					</CardHeader>
 					<Divider />
 					<CardBody>
-						{wallets.length > 0 ? (
+						{getWallets.data.length > 0 ? (
 							<TableContainer>
 								<Table variant="simple">
 									<Thead>
@@ -89,7 +118,7 @@ const Search = ({ value, handleChange }) => {
 										</Tr>
 									</Thead>
 									<Tbody>
-										{wallets.map((wallet) => {
+										{getWallets.data.map((wallet) => {
 											return (
 												<Tr>
 													<Td>

@@ -1,15 +1,22 @@
-import { ColorModeScript } from '@chakra-ui/react';
+// Modules
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
+import { ColorModeScript } from '@chakra-ui/react';
+
+// Components
 import { App } from './App';
 import reportWebVitals from './reportWebVitals';
 import * as serviceWorker from './serviceWorker';
 
-import { AuthContextProvider } from './context/AuthContext';
-
+// Providers
+import { Auth0Provider } from '@auth0/auth0-react';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { ContractContextProvider } from './contexts/ContractContext';
+
+// Other
 import { WagmiConfig } from 'wagmi';
 import { chains, wagmiClient } from './rainbow';
+import { auth0Config } from './config';
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Failed to find the root element');
@@ -17,18 +24,24 @@ const root = ReactDOM.createRoot(container);
 
 root.render(
 	<React.StrictMode>
-		<AuthContextProvider>
+		<Auth0Provider
+			domain={auth0Config.domain || ''}
+			clientId={auth0Config.clientId || ''}
+			redirectUri={window.location.origin}
+		>
 			<WagmiConfig client={wagmiClient}>
-				<RainbowKitProvider
-					modalSize="compact"
-					coolMode
-					chains={chains}
-				>
-					<ColorModeScript />
-					<App />
-				</RainbowKitProvider>
+				<ContractContextProvider>
+					<RainbowKitProvider
+						modalSize="compact"
+						coolMode
+						chains={chains}
+					>
+						<ColorModeScript />
+						<App />
+					</RainbowKitProvider>
+				</ContractContextProvider>
 			</WagmiConfig>
-		</AuthContextProvider>
+		</Auth0Provider>
 	</React.StrictMode>
 );
 

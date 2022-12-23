@@ -1,4 +1,5 @@
-import React, { ReactNode } from 'react';
+// Modules
+import { ReactNode } from 'react';
 import {
 	IconButton,
 	Avatar,
@@ -25,47 +26,27 @@ import {
 	MenuItem,
 	MenuList,
 } from '@chakra-ui/react';
-import {
-	FiHome,
-	FiTrendingUp,
-	FiCompass,
-	FiStar,
-	FiSettings,
-	FiMenu,
-	FiBell,
-	FiChevronDown,
-} from 'react-icons/fi';
-import { IconType } from 'react-icons';
-import { UserAuth } from '../../context/AuthContext';
-import { useAccount } from 'wagmi';
-
-import config from '../../build/contracts/Nexus.json';
-import { useContractRead } from 'wagmi';
-import { ColorModeSwitcher } from '../../ColorModeSwitcher';
-import { DeleteIcon } from '@chakra-ui/icons';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 
-import Footer from '../home/Footer';
-import { ethers } from 'ethers';
+// Icons
+import { FiMenu, FiChevronDown } from 'react-icons/fi';
+import { DeleteIcon } from '@chakra-ui/icons';
+
+// Hooks
+import { useAuth0 } from '@auth0/auth0-react';
+import { useAccount } from 'wagmi';
+
+// Components
+import { ColorModeSwitcher } from '../../ColorModeSwitcher';
+// import Footer from '../home/Footer';
 import ConfirmDeleteProfile from '../modals/ConfirmDeleteProfile';
 import WalletOptions from '../modals/WalletOptions';
-import { tempPhoneNumber } from '../../constants';
-import sha256 from 'crypto-js/sha256';
-
-interface LinkItemProps {
-	name: string;
-	icon: IconType;
-}
-const LinkItems: Array<LinkItemProps> = [
-	{ name: 'Home', icon: FiHome },
-	{ name: 'Trending', icon: FiTrendingUp },
-	{ name: 'Explore', icon: FiCompass },
-	{ name: 'Favourites', icon: FiStar },
-	{ name: 'Settings', icon: FiSettings },
-];
+import { useContract } from '../../contexts/ContractContext';
 
 export default function Main({ children }: { children: ReactNode }) {
+	// Hooks
 	const { isOpen, onOpen, onClose } = useDisclosure();
+
 	return (
 		<Box minH="100vh" bg={useColorModeValue('gray.100', 'gray.900')}>
 			<SidebarContent
@@ -102,19 +83,8 @@ interface SidebarProps extends BoxProps {
 const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
 	// Hooks
 	const { isOpen, onOpen, onClose: _onClose } = useDisclosure();
+	const { getWallets } = useContract();
 	const { isConnected } = useAccount();
-
-	// Smart Contract
-	const {
-		data: wallets,
-		isError,
-		isLoading,
-	}: any = useContractRead({
-		address: config.address,
-		abi: config.abi,
-		functionName: 'getWallets',
-		args: ['0x' + sha256(tempPhoneNumber).toString()],
-	});
 
 	return (
 		<Box
@@ -140,7 +110,7 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
 				/>
 			</Flex>
 
-			{wallets !== undefined ? (
+			{getWallets.data !== undefined ? (
 				<>
 					{isConnected && (
 						<>
@@ -152,12 +122,12 @@ const SidebarContent = ({ onClose, ...rest }: SidebarProps) => {
 								style={{ textAlign: 'center' }}
 							>
 								Connected wallets (
-								{isConnected ? wallets.length : '0'})
+								{isConnected ? getWallets.data.length : '0'})
 							</Heading>
 
-							{!isError && !isLoading && wallets && (
+							{!!getWallets.loading && getWallets.data && (
 								<>
-									{wallets.map(
+									{getWallets.data.map(
 										(wallet: any, index: number) => {
 											return (
 												<div key={index}>
@@ -238,29 +208,28 @@ interface MobileProps extends FlexProps {
 	onOpen: () => void;
 }
 const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
-	const { user, logOut } = UserAuth();
 	// Hooks
-	const { isConnected } = useAccount();
 	const {
 		isOpen: isConfirmDeleteOpen,
 		onOpen: onConfirmDeleteOpen,
 		onClose: onConfirmDeleteClose,
 	} = useDisclosure();
+	const { user, isAuthenticated, isLoading, logout } = useAuth0();
+	const { isConnected } = useAccount();
 
-	const PNF = require('google-libphonenumber').PhoneNumberFormat;
-	const phoneUtil =
-		require('google-libphonenumber').PhoneNumberUtil.getInstance();
-	const number = phoneUtil.parseAndKeepRawInput(tempPhoneNumber, 'US');
+	if (isLoading) {
+		return <div>Loading ...</div>;
+	}
 
-	return (
+	return isAuthenticated ? (
 		<Flex
 			ml={{ base: 0, md: 60 }}
 			px={{ base: 4, md: 4 }}
 			height="20"
 			alignItems="center"
-			bg={useColorModeValue('white', 'gray.900')}
+			// bg={useColorModeValue('white', 'gray.900')}
 			borderBottomWidth="1px"
-			borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
+			// borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
 			justifyContent={{ base: 'space-between', md: 'flex-end' }}
 			{...rest}
 		>
@@ -290,7 +259,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 							_focus={{ boxShadow: 'none' }}
 						>
 							<HStack>
-								<Avatar size={'sm'} src={user.photoURL} />
+								<Avatar size={'sm'} src={user?.picture} />
 								<VStack
 									display={{ base: 'none', md: 'flex' }}
 									alignItems="flex-start"
@@ -298,8 +267,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 									ml="2"
 								>
 									<Text fontSize="sm">
-										{user?.displayName ||
-											'Cannot find name'}
+										{user?.name || 'Cannot find name'}
 									</Text>
 									<Text fontSize="xs" color="gray.600">
 										{user?.email || 'Cannot find email'}
@@ -311,18 +279,12 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 							</HStack>
 						</MenuButton>
 						<MenuList
-							bg={useColorModeValue('white', 'gray.900')}
-							borderColor={useColorModeValue(
-								'gray.200',
-								'gray.700'
-							)}
+						// bg={useColorModeValue('white', 'gray.900')}
+						// borderColor={useColorModeValue(
+						// 	'gray.200',
+						// 	'gray.700'
+						// )}
 						>
-							<MenuItem>
-								{phoneUtil.format(number, PNF.INTERNATIONAL)}
-							</MenuItem>
-
-							<MenuDivider />
-
 							<ColorModeSwitcher justifySelf="flex-end" />
 
 							{isConnected && (
@@ -340,7 +302,15 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 
 							<MenuDivider />
 
-							<MenuItem onClick={logOut}>Sign out</MenuItem>
+							<MenuItem
+								onClick={() =>
+									logout({
+										returnTo: window.location.origin,
+									})
+								}
+							>
+								Sign out
+							</MenuItem>
 						</MenuList>
 					</Menu>
 				</Flex>
@@ -351,5 +321,7 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
 				onClose={onConfirmDeleteClose}
 			/>
 		</Flex>
+	) : (
+		<p>none</p>
 	);
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+// Modules
 import { Stack, Text } from '@chakra-ui/react';
 import {
 	EmailShareButton,
@@ -18,11 +18,9 @@ import {
 	TwitterIcon,
 	WhatsappIcon,
 } from 'react-share';
+import { nexusConfig } from '../../config';
 
 const SocialShare = () => {
-	const shareUrl = 'http://nexus.normalfinance.io';
-	const title = 'Nexus by Normal';
-
 	return (
 		<div>
 			<Stack align={'center'}>
@@ -33,8 +31,8 @@ const SocialShare = () => {
 			<div style={{ textAlign: 'center', paddingTop: '1rem' }}>
 				{/* Facebook */}
 				<FacebookShareButton
-					url={shareUrl}
-					quote={title}
+					url={nexusConfig.share.url}
+					quote={nexusConfig.share.title}
 					style={{ marginRight: '0.5rem' }}
 				>
 					<FacebookIcon size={32} round />
@@ -42,7 +40,7 @@ const SocialShare = () => {
 
 				{/* Messenger */}
 				<FacebookMessengerShareButton
-					url={shareUrl}
+					url={nexusConfig.share.url}
 					appId="521270401588372"
 					style={{ marginRight: '0.5rem' }}
 				>
@@ -51,8 +49,8 @@ const SocialShare = () => {
 
 				{/* Twitter */}
 				<TwitterShareButton
-					url={shareUrl}
-					title={title}
+					url={nexusConfig.share.url}
+					title={nexusConfig.share.title}
 					style={{ marginRight: '0.5rem' }}
 				>
 					<TwitterIcon size={32} round />
@@ -60,8 +58,8 @@ const SocialShare = () => {
 
 				{/* Telegram */}
 				<TelegramShareButton
-					url={shareUrl}
-					title={title}
+					url={nexusConfig.share.url}
+					title={nexusConfig.share.title}
 					style={{ marginRight: '0.5rem' }}
 				>
 					<TelegramIcon size={32} round />
@@ -69,8 +67,8 @@ const SocialShare = () => {
 
 				{/* Whatsapp */}
 				<WhatsappShareButton
-					url={shareUrl}
-					title={title}
+					url={nexusConfig.share.url}
+					title={nexusConfig.share.title}
 					separator=":: "
 					style={{ marginRight: '0.5rem' }}
 				>
@@ -79,7 +77,7 @@ const SocialShare = () => {
 
 				{/* LinkedIn */}
 				<LinkedinShareButton
-					url={shareUrl}
+					url={nexusConfig.share.url}
 					style={{ marginRight: '0.5rem' }}
 				>
 					<LinkedinIcon size={32} round />
@@ -87,8 +85,8 @@ const SocialShare = () => {
 
 				{/* Reddit */}
 				<RedditShareButton
-					url={shareUrl}
-					title={title}
+					url={nexusConfig.share.url}
+					title={nexusConfig.share.title}
 					windowWidth={660}
 					windowHeight={460}
 					style={{ marginRight: '0.5rem' }}
@@ -98,8 +96,8 @@ const SocialShare = () => {
 
 				{/* Email */}
 				<EmailShareButton
-					url={shareUrl}
-					subject={title}
+					url={nexusConfig.share.url}
+					subject={nexusConfig.share.title}
 					body="body"
 					style={{ marginRight: '0.5rem' }}
 				>

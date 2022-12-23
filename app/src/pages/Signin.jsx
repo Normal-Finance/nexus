@@ -6,57 +6,18 @@ import {
 	Center,
 	Text,
 	Box,
-	Grid,
-	VStack,
 	Stack,
 	Heading,
 	useColorModeValue,
 } from '@chakra-ui/react';
-import { UserAuth } from '../context/AuthContext';
 import { FcGoogle } from 'react-icons/fc';
-import { ColorModeSwitcher } from '../ColorModeSwitcher';
 
-// Components
-import Verify from '../components/signin/sms/Verify';
-import Submit from '../components/signin/sms/Submit';
+// Hooks
+import { useAuth0 } from '@auth0/auth0-react';
 
 const Signin = () => {
 	// Hooks
-	const { googleSignIn, sendSMSVerificationCode, submitSMSVerificationCode } =
-		UserAuth();
-
-	// State
-	const [phoneNumberView, setPhoneNumberView] = React.useState('submit');
-	const [phoneNumber, setPhoneNumber] = React.useState('');
-	const handlePhoneNumberChange = (event) =>
-		setPhoneNumber(event.target.value);
-
-	// Functions
-	const handleGoogleSignIn = async () => {
-		try {
-			await googleSignIn();
-		} catch (error) {
-			console.log(error);
-		}
-	};
-
-	const handlePhoneNumberSubmit = async (phoneNumber) => {
-		try {
-			sendSMSVerificationCode(phoneNumber);
-			setPhoneNumberView('verify');
-		} catch (error) {
-			console.log(error);
-		}
-	};
-
-	const handlePhoneNumberVerify = async (code) => {
-		try {
-			submitSMSVerificationCode(code);
-			// setPhoneNumberView('verify');
-		} catch (error) {
-			console.log(error);
-		}
-	};
+	const { loginWithRedirect } = useAuth0();
 
 	return (
 		<Flex
@@ -90,26 +51,12 @@ const Signin = () => {
 							<Button
 								variant={'outline'}
 								leftIcon={<FcGoogle />}
-								onClick={handleGoogleSignIn}
+								onClick={() => loginWithRedirect()}
 							>
 								<Center>
 									<Text>Sign in with Google</Text>
 								</Center>
 							</Button>
-
-							{phoneNumberView === 'submit' && (
-								<Submit
-									phoneNumber={phoneNumber}
-									handleChange={handlePhoneNumberChange}
-									onSubmit={handlePhoneNumberSubmit}
-								/>
-							)}
-							{phoneNumberView === 'verify' && (
-								<Verify
-									phoneNumber={phoneNumber}
-									onSubmit={handlePhoneNumberVerify}
-								/>
-							)}
 						</Stack>
 					</Stack>
 				</Box>

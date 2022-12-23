@@ -1,4 +1,4 @@
-import React from 'react';
+// Modules
 import {
 	Modal,
 	ModalOverlay,
@@ -18,37 +18,18 @@ import {
 	FormLabel,
 } from '@chakra-ui/react';
 import { Field, Form, Formik } from 'formik';
-import { useContractWrite } from 'wagmi';
-import { ethers } from 'ethers';
-import config from '../../build/contracts/Nexus.json';
-import { tempPhoneNumber } from '../../constants';
+
+// Hookds
+import { useContract } from '../../contexts/ContractContext';
 
 const WalletOptions = ({ isOpen, wallet, walletIndex, onClose }) => {
-	console.log(wallet);
-	// Smart Contract
+	// Hookds
 	const {
-		data: updateWalletData,
-		write: updateWallet,
-		isLoading: isUpdateWalletLoading,
-		isSuccess: isUpdateWalletStarted,
-	} = useContractWrite({
-		mode: 'recklesslyUnprepared',
-		address: config.address,
-		abi: config.abi,
-		functionName: 'updateWallet',
-	});
-
-	const {
-		data: deleteWalletData,
-		write: deleteWallet,
-		isLoading: isDeleteWalletLoading,
-		isSuccess: isDeleteWalletStarted,
-	} = useContractWrite({
-		mode: 'recklesslyUnprepared',
-		address: config.address,
-		abi: config.abi,
-		functionName: 'deleteWallet',
-	});
+		updateWallet,
+		executeUpdateWallet,
+		deleteWallet,
+		executeDeleteWallet,
+	} = useContract();
 
 	// Validation
 	function validateField(value) {
@@ -145,42 +126,37 @@ const WalletOptions = ({ isOpen, wallet, walletIndex, onClose }) => {
 									mr={3}
 									loadingText={
 										<>
-											{isUpdateWalletLoading &&
+											{updateWallet.loading &&
 												'Waiting for approval'}
-											{isUpdateWalletStarted &&
+											{updateWallet.started &&
 												'Updating wallet...'}
 										</>
 									}
 									isLoading={
-										isUpdateWalletLoading ||
-										isUpdateWalletStarted
+										updateWallet.loading ||
+										updateWallet.started
 									}
 									type="submit"
 									disabled={
-										isUpdateWalletLoading ||
-										isUpdateWalletStarted ||
-										isDeleteWalletLoading ||
-										isDeleteWalletStarted
+										updateWallet.loading ||
+										updateWallet.started ||
+										deleteWallet.loading ||
+										deleteWallet.started
 									}
 									onClick={() => {
-										updateWallet?.({
-											recklesslySetUnpreparedArgs: [
-												ethers.utils.formatBytes32String(
-													tempPhoneNumber
-												),
-												walletIndex,
-												props.values.name,
-												props.values.description,
-											],
-										});
+										executeUpdateWallet(
+											walletIndex,
+											props.values.name,
+											props.values.description
+										);
 									}}
 								>
-									{isUpdateWalletLoading &&
+									{updateWallet.loading &&
 										'Waiting for approval'}
-									{isUpdateWalletStarted &&
+									{updateWallet.started &&
 										'Updating wallet...'}
-									{!isUpdateWalletLoading &&
-										!isUpdateWalletStarted &&
+									{!updateWallet.loading &&
+										!updateWallet.started &&
 										'Update'}
 								</Button>
 
@@ -189,39 +165,32 @@ const WalletOptions = ({ isOpen, wallet, walletIndex, onClose }) => {
 									colorScheme="red"
 									loadingText={
 										<>
-											{isDeleteWalletLoading &&
+											{deleteWallet.loading &&
 												'Waiting for approval'}
-											{isDeleteWalletStarted &&
+											{deleteWallet.started &&
 												'Deleting wallet...'}
 										</>
 									}
 									isLoading={
-										isDeleteWalletLoading ||
-										isDeleteWalletStarted
+										deleteWallet.loading ||
+										deleteWallet.started
 									}
 									disabled={
-										isDeleteWalletLoading ||
-										isDeleteWalletStarted ||
-										isUpdateWalletLoading ||
-										isUpdateWalletStarted
+										deleteWallet.loading ||
+										deleteWallet.started ||
+										updateWallet.loading ||
+										updateWallet.started
 									}
 									onClick={() => {
-										deleteWallet?.({
-											recklesslySetUnpreparedArgs: [
-												ethers.utils.formatBytes32String(
-													tempPhoneNumber
-												),
-												walletIndex,
-											],
-										});
+										executeDeleteWallet(walletIndex);
 									}}
 								>
-									{isDeleteWalletLoading &&
+									{deleteWallet.loading &&
 										'Waiting for approval'}
-									{isDeleteWalletStarted &&
+									{deleteWallet.started &&
 										'Deleting wallet...'}
-									{!isDeleteWalletLoading &&
-										!isDeleteWalletStarted &&
+									{!deleteWallet.loading &&
+										!deleteWallet.started &&
 										'Delete'}
 								</Button>
 							</ModalFooter>

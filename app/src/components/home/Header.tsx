@@ -1,4 +1,4 @@
-import React from 'react';
+// Modules
 import { Stack, Heading, Text } from '@chakra-ui/react';
 
 const Header = () => {

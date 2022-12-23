@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+// Modules
 import {
 	Box,
 	Stack,
@@ -12,68 +12,44 @@ import {
 	FormErrorMessage,
 	useColorModeValue,
 } from '@chakra-ui/react';
-import { useAccount } from 'wagmi';
-import { chains, providers, tempPhoneNumber } from '../../constants';
-
-import {
-	useContractRead,
-	useContractWrite,
-	useWaitForTransaction,
-} from 'wagmi';
-import config from '../../build/contracts/Nexus.json';
-
 import { Field, Form, Formik } from 'formik';
-import sha256 from 'crypto-js/sha256';
+
+// Constants
+import { chains, providers } from '../../constants';
+
+// Hooks
+import { useAuth0 } from '@auth0/auth0-react';
+import { useContract } from '../../contexts/ContractContext';
 
 const WalletConnectors = () => {
-	// Smart Contract
+	// Hooks
+	const { user } = useAuth0();
 	const {
-		data: wallets,
-		isError,
-		isLoading,
-	} = useContractRead({
-		address: config.address,
-		abi: config.abi,
-		functionName: 'getWallets',
-		args: ['0x' + sha256(tempPhoneNumber).toString()],
-	});
+		getWallets,
+		createProfile,
+		executeCreateProfile,
+		insertWallet,
+		executeInsertWallet,
+	} = useContract();
 
-	const {
-		data: createProfileData,
-		write: createProfile,
-		isLoading: isCreateProfileLoading,
-		isSuccess: isCreateProfileStarted,
-	} = useContractWrite({
-		mode: 'recklesslyUnprepared',
-		address: config.address,
-		abi: config.abi,
-		functionName: 'createProfile',
-	});
-
-	const { isSuccess: createProfileTxSuccess } = useWaitForTransaction({
-		hash: createProfileData?.data,
-	});
-
-	const {
-		data: insertWalletData,
-		write: insertWallet,
-		isLoading: isInsertWalletLoading,
-		isSuccess: isInsertWalletStarted,
-	} = useContractWrite({
-		mode: 'recklesslyUnprepared',
-		address: config.address,
-		abi: config.abi,
-		functionName: 'insertWallet',
-	});
-
-	const { isSuccess: insertWalletTxSuccess } = useWaitForTransaction({
-		hash: insertWalletData?.data,
-	});
-
-	useEffect(() => {
-		if (createProfileTxSuccess || insertWalletTxSuccess)
-			window.location.reload();
-	}, [createProfileTxSuccess, insertWalletTxSuccess]);
+	const _createProfile = async () => {
+		try {
+			const url = `${process.env.REACT_APP_NEXUS_API_PATH}/profile`;
+			const requestOptions = {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-api-key': process.env.REACT_APP_NEXUS_API_KEY,
+				},
+				body: JSON.stringify({ email: user.email, isServerSide: '' }),
+			};
+			const response = await fetch(url, requestOptions);
+			const json = await response.json();
+			console.log(json);
+		} catch (error) {
+			console.log('error', error);
+		}
+	};
 
 	// Validation
 	function validateField(value) {
@@ -92,7 +68,7 @@ const WalletConnectors = () => {
 			p={8}
 		>
 			<Stack spacing={4}>
-				{wallets !== undefined ? (
+				{getWallets.data !== undefined ? (
 					<Formik
 						initialValues={{
 							address: '',
@@ -102,30 +78,22 @@ const WalletConnectors = () => {
 							chain: '',
 						}}
 						onSubmit={async (values, actions) => {
-							if (wallets.length === 0) {
-								await createProfile?.({
-									recklesslySetUnpreparedArgs: [
-										'0x' +
-											sha256(tempPhoneNumber).toString(),
-										values.address,
-										values.name,
-										values.description,
-										values.provider,
-										values.chain,
-									],
-								});
+							if (getWallets.data.length === 0) {
+								executeCreateProfile(
+									values.address,
+									values.name,
+									values.description,
+									values.provider,
+									values.chain
+								);
 							} else {
-								await insertWallet?.({
-									recklesslySetUnpreparedArgs: [
-										'0x' +
-											sha256(tempPhoneNumber).toString(),
-										values.address,
-										values.name,
-										values.description,
-										values.provider,
-										values.chain,
-									],
-								});
+								executeInsertWallet(
+									values.address,
+									values.name,
+									values.description,
+									values.provider,
+									values.chain
+								);
 							}
 
 							actions.setSubmitting(false);
@@ -273,7 +241,7 @@ const WalletConnectors = () => {
 								</HStack>
 
 								<Stack spacing={10} pt={2}>
-									{wallets.length === 0 ? (
+									{getWallets.data.length === 0 ? (
 										<>
 											<Button
 												mt={4}
@@ -285,32 +253,33 @@ const WalletConnectors = () => {
 														'linear(to-r, red.400,pink.400)',
 													boxShadow: 'xl',
 												}}
-												loadingText={
-													<>
-														{isInsertWalletLoading &&
-															'Waiting for approval'}
-														{isInsertWalletStarted &&
-															'Creating profile...'}
-													</>
-												}
-												isLoading={
-													isCreateProfileLoading ||
-													isCreateProfileStarted
-												}
+												// loadingText={
+												// 	<>
+												// 		{insertWallet.loading &&
+												// 			'Waiting for approval'}
+												// 		{insertWallet.started &&
+												// 			'Creating profile...'}
+												// 	</>
+												// }
+												// isLoading={
+												// 	createProfile.loading ||
+												// 	createProfile.started
+												// }
 												type="submit"
-												disabled={
-													!createProfile ||
-													isCreateProfileLoading ||
-													isCreateProfileStarted
-												}
+												// disabled={
+												// 	!createProfile ||
+												// 	createProfile.loading ||
+												// 	createProfile.started
+												// }
 											>
-												{isCreateProfileLoading &&
+												{/* {createProfile.loading &&
 													'Waiting for approval'}
-												{isCreateProfileStarted &&
+												{createProfile.started &&
 													'Creating profile...'}
-												{!isCreateProfileLoading &&
-													!isCreateProfileStarted &&
-													'Create profile'}
+												{!createProfile.loading &&
+													!createProfile.started &&
+													'Create profile'} */}
+												Create profile
 											</Button>
 											<Text align={'center'}>
 												Add your first wallet to create
@@ -330,29 +299,29 @@ const WalletConnectors = () => {
 											}}
 											loadingText={
 												<>
-													{isInsertWalletLoading &&
+													{insertWallet.loading &&
 														'Waiting for approval'}
-													{isInsertWalletStarted &&
+													{insertWallet.started &&
 														'Adding wallet...'}
 												</>
 											}
 											isLoading={
-												isInsertWalletLoading ||
-												isInsertWalletStarted
+												insertWallet.loading ||
+												insertWallet.started
 											}
 											type="submit"
 											disabled={
 												!insertWallet ||
-												isInsertWalletLoading ||
-												isInsertWalletStarted
+												insertWallet.loading ||
+												insertWallet.started
 											}
 										>
-											{isInsertWalletLoading &&
+											{insertWallet.loading &&
 												'Waiting for approval'}
-											{isInsertWalletStarted &&
+											{insertWallet.started &&
 												'Adding wallet...'}
-											{!isInsertWalletLoading &&
-												!isInsertWalletStarted &&
+											{!insertWallet.loading &&
+												!insertWallet.started &&
 												'Submit'}
 										</Button>
 									)}

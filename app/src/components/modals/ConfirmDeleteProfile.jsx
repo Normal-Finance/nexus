@@ -1,4 +1,4 @@
-import React from 'react';
+// Modules
 import {
 	Modal,
 	ModalOverlay,
@@ -10,25 +10,16 @@ import {
 	Button,
 	Text,
 } from '@chakra-ui/react';
-import { useContractWrite } from 'wagmi';
-import config from '../../build/contracts/Nexus.json';
-import { ethers } from 'ethers';
-import { tempPhoneNumber } from '../../constants';
+
+// Icons
 import { DeleteIcon } from '@chakra-ui/icons';
 
+// Hooks
+import { useContract } from '../../contexts/ContractContext';
+
 const ConfirmDeleteProfile = ({ isOpen, onClose }) => {
-	// Smart Contract
-	const {
-		data: deleteProfileData,
-		write: deleteProfile,
-		isLoading: isDeleteProfileLoading,
-		isSuccess: isDeleteProfileStarted,
-	} = useContractWrite({
-		mode: 'recklesslyUnprepared',
-		address: config.address,
-		abi: config.abi,
-		functionName: 'deleteProfile',
-	});
+	// Hooks
+	const { deleteProfile, executeDeleteProfile } = useContract();
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose}>
@@ -51,41 +42,34 @@ const ConfirmDeleteProfile = ({ isOpen, onClose }) => {
 						leftIcon={<DeleteIcon />}
 						loadingText={
 							<>
-								{isDeleteProfileLoading &&
+								{deleteProfile.loading &&
 									'Waiting for approval'}
-								{isDeleteProfileStarted &&
-									'Deleting profile...'}
+								{deleteProfile.started && 'Deleting profile...'}
 							</>
 						}
 						isLoading={
-							isDeleteProfileLoading || isDeleteProfileStarted
+							deleteProfile.loading || deleteProfile.started
 						}
 						type="submit"
 						disabled={
 							!deleteProfile ||
-							isDeleteProfileLoading ||
-							isDeleteProfileStarted
+							deleteProfile.loading ||
+							deleteProfile.started
 						}
 						onClick={() => {
-							deleteProfile?.({
-								recklesslySetUnpreparedArgs: [
-									ethers.utils.formatBytes32String(
-										tempPhoneNumber
-									),
-								],
-							});
+							executeDeleteProfile();
 						}}
 					>
-						{isDeleteProfileLoading && 'Waiting for approval'}
-						{isDeleteProfileStarted && 'Deleting profile...'}
-						{!isDeleteProfileLoading &&
-							!isDeleteProfileStarted &&
+						{deleteProfile.loading && 'Waiting for approval'}
+						{deleteProfile.started && 'Deleting profile...'}
+						{!deleteProfile.loading &&
+							!deleteProfile.started &&
 							'Delete'}
 					</Button>
 					<Button
 						onClick={onClose}
 						disabled={
-							isDeleteProfileLoading || isDeleteProfileStarted
+							deleteProfile.loading || deleteProfile.started
 						}
 					>
 						Cancel

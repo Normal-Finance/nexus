@@ -9,13 +9,14 @@ import {
 	AlertDescription,
 } from '@chakra-ui/react';
 
+// Hooks
+import { useAccount } from 'wagmi';
+
 // Components
 import WalletConnectors from '../components/home/WalletConnectors';
 import Header from '../components/home/Header';
 import Main from '../components/layout/Main';
 import Search from '../components/home/Search';
-
-import { useAccount } from 'wagmi';
 import SocialShare from '../components/home/SocialShare';
 
 const Home = () => {

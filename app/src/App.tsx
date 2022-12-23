@@ -1,16 +1,19 @@
-import * as React from 'react';
-import { ChakraProvider, Box, VStack, Grid, theme } from '@chakra-ui/react';
+// Modules
+import { ChakraProvider, theme } from '@chakra-ui/react';
 
-import { UserAuth } from './context/AuthContext';
+// Hooks
+import { useAuth0 } from '@auth0/auth0-react';
+
+// Components
 import Signin from './pages/Signin';
 import Home from './pages/Home';
 
 export const App = () => {
-	const { user } = UserAuth();
+	const { isAuthenticated } = useAuth0();
 
 	return (
 		<ChakraProvider theme={theme}>
-			{user === null ? <Signin /> : <Home />}
+			{isAuthenticated ? <Home /> : <Signin />}
 		</ChakraProvider>
 	);
 };
