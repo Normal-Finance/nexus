@@ -23,6 +23,12 @@ contract Authorizer {
 
     event AuthorizationUpdateEvent(bytes32 indexed hash, AuthorizationState);
 
+    /* ========== CONSTRUCTOR ========== */
+
+    constructor() {
+        owner = msg.sender;
+    }
+
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function requireAuthorization(bytes32 hash)
