@@ -27,6 +27,7 @@ import { SearchIcon, CopyIcon } from '@chakra-ui/icons';
 
 // Hooks
 import { useContract } from '../../contexts/ContractContext';
+import { nexusConfig } from '../../config';
 
 const Search = ({ value, handleChange }) => {
 	// Hooks
@@ -67,11 +68,10 @@ const Search = ({ value, handleChange }) => {
 		}
 	}, [value]);
 
-	const sendInvite = () => {};
-
 	const sendEmail = () => {
-		window.location.href =
-			'mailto:jblewdv@gmail.com?subject=Checkout%20Nexus&body=Hey%20here';
+		window.location.href = `mailto:${value}?subject=${encodeURIComponent(
+			nexusConfig.invite.email.subject
+		)}&body=${encodeURIComponent(nexusConfig.invite.email.body)}`;
 	};
 
 	return (
@@ -84,7 +84,7 @@ const Search = ({ value, handleChange }) => {
 				/>
 				<Input
 					type="tel"
-					placeholder="Search people by phone number"
+					placeholder="Search wallets by email or phone"
 					value={value}
 					onChange={(event) => {
 						handleChange(event.target.value);
@@ -125,10 +125,6 @@ const Search = ({ value, handleChange }) => {
 														<Avatar
 															size="sm"
 															mr="4"
-															// fontSize="16"
-															// _groupHover={{
-															// 	color: 'white',
-															// }}
 															name={
 																wallet.provider
 															}
@@ -166,17 +162,10 @@ const Search = ({ value, handleChange }) => {
 							<>
 								<Text mb={3}>
 									There are no wallets associated with this
-									phone number.
+									email.
 								</Text>
-								<Button
-									mr={3}
-									colorScheme="blue"
-									onClick={sendInvite}
-								>
-									Invite via SMS
-								</Button>
-								<Button colorScheme="teal" onClick={sendEmail}>
-									Invite via Email
+								<Button colorScheme="blue" onClick={sendEmail}>
+									Invite them
 								</Button>
 							</>
 						)}

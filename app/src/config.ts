@@ -5,6 +5,12 @@ export const auth0Config = {
 
 export const nexusConfig = {
 	share: { url: 'http://nexus.normalfinance.io', title: 'Nexus by Normal' },
+	invite: {
+		email: {
+			subject: 'You should checkout Nexus!',
+			body: "Hey there,\n\nI found this new web3 project called Nexus that let's you share your wallet addresses. I just made my profile so we can send crypto to each other easier!\n\nYou should set one up too: https://nexus.normalfinance.io",
+		},
+	},
 };
 
 export const firebaseConfig = {
