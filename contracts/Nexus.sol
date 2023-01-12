@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.3;
+pragma solidity ^0.8.7;
 
 import "./Authorizer.sol";
 
 contract Nexus {
     /* ========== DATA STRUCTURES ========== */
     struct Wallet {
-        string _address;
+        string walletAddress;
         string name;
         string description;
         string provider;
