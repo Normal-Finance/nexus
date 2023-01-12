@@ -70,25 +70,25 @@ contract Nexus {
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     // PROFILE
-    function createProfile(
-        bytes32 hash,
-        string memory walletAddress,
-        string memory name,
-        string memory description,
-        string memory provider,
-        string memory chain
-    ) external payable onlyAuthorized(hash) sufficientPayment {
+    function createProfile(bytes32 hash, Wallet[] memory wallets)
+        external
+        payable
+        onlyAuthorized(hash)
+        sufficientPayment
+    {
         Profile storage profile = profiles[hash];
         profile.owner = msg.sender;
 
-        Wallet memory newWallet = Wallet(
-            walletAddress,
-            name,
-            description,
-            provider,
-            chain
-        );
-        profile.wallets.push(newWallet);
+        for (uint8 i = 0; i < wallets.length; i++) {
+            Wallet memory newWallet = Wallet(
+                wallets[i].walletAddress,
+                wallets[i].name,
+                wallets[i].description,
+                wallets[i].provider,
+                wallets[i].chain
+            );
+            profile.wallets.push(newWallet);
+        }
 
         emit ProfileCreateEvent(hash);
     }
