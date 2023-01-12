@@ -11,6 +11,8 @@ import {
 } from '@chakra-ui/react';
 import { FaDiscord, FaInstagram, FaLinkedin, FaTwitter } from 'react-icons/fa';
 import { ReactNode } from 'react';
+import SocialShare from './SocialShare';
+import Donate from './Donate';
 
 const SocialButton = ({
 	children,
@@ -47,17 +49,16 @@ const SocialButton = ({
 export default function Footer() {
 	return (
 		<Box
-			// bg={useColorModeValue('gray.50', 'gray.900')}
+			bg={useColorModeValue('gray.50', 'gray.900')}
 			color={useColorModeValue('gray.700', 'gray.200')}
 		>
 			<Container
 				as={Stack}
 				maxW={'6xl'}
 				py={4}
-				direction={{ base: 'column', md: 'row' }}
 				spacing={4}
-				justify={{ base: 'center', md: 'space-between' }}
-				align={{ base: 'center', md: 'center' }}
+				justify={'center'}
+				align={'center'}
 			>
 				<Image
 					width={'10%'}
@@ -65,34 +66,59 @@ export default function Footer() {
 					src="/logo.png"
 					alt="Normal Logo"
 				/>
-				<Text>© 2022 Normal Finance, Inc. All rights reserved</Text>
 				<Stack direction={'row'} spacing={6}>
-					<SocialButton
-						label={'Twitter'}
-						href={'https://twitter.com/normalfi'}
-					>
-						<FaTwitter />
-					</SocialButton>
-					<SocialButton
-						label={'LinkedIn'}
-						href={'https://www.linkedin.com/company/normalfi'}
-					>
-						<FaLinkedin />
-					</SocialButton>
-					<SocialButton
-						label={'Instagram'}
-						href={'https://www.instagram.com/normalfinance.io/'}
-					>
-						<FaInstagram />
-					</SocialButton>
-					<SocialButton
-						label={'Discord'}
-						href={'https://link.normalfinance.io/discord'}
-					>
-						<FaDiscord />
-					</SocialButton>
+					<SocialShare />
+					{/* <Donate /> */}
+					{/* <Link href={'#'}>Home</Link>
+			<Link href={'#'}>About</Link>
+			<Link href={'#'}>Blog</Link>
+			<Link href={'#'}>Contact</Link> */}
 				</Stack>
 			</Container>
+
+			<Box
+				borderTopWidth={1}
+				borderStyle={'solid'}
+				borderColor={useColorModeValue('gray.200', 'gray.700')}
+			>
+				<Container
+					as={Stack}
+					maxW={'6xl'}
+					py={4}
+					direction={{ base: 'column', md: 'row' }}
+					spacing={4}
+					justify={{ base: 'center', md: 'space-between' }}
+					align={{ base: 'center', md: 'center' }}
+				>
+					<Text>© 2022 Chakra Templates. All rights reserved</Text>
+					<Stack direction={'row'} spacing={6}>
+						<SocialButton
+							label={'Twitter'}
+							href={'https://twitter.com/normalfi'}
+						>
+							<FaTwitter />
+						</SocialButton>
+						<SocialButton
+							label={'LinkedIn'}
+							href={'https://www.linkedin.com/company/normalfi'}
+						>
+							<FaLinkedin />
+						</SocialButton>
+						<SocialButton
+							label={'Instagram'}
+							href={'https://www.instagram.com/normalfinance.io/'}
+						>
+							<FaInstagram />
+						</SocialButton>
+						<SocialButton
+							label={'Discord'}
+							href={'https://link.normalfinance.io/discord'}
+						>
+							<FaDiscord />
+						</SocialButton>
+					</Stack>
+				</Container>
+			</Box>
 		</Box>
 	);
 }
