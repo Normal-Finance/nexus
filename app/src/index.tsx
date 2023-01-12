@@ -17,6 +17,7 @@ import { ContractContextProvider } from './contexts/ContractContext';
 import { WagmiConfig } from 'wagmi';
 import { chains, wagmiClient } from './rainbow';
 import { auth0Config } from './config';
+import { AlertProvider } from './contexts/AlertContext';
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Failed to find the root element');
@@ -28,18 +29,23 @@ root.render(
 			domain={auth0Config.domain || ''}
 			clientId={auth0Config.clientId || ''}
 			redirectUri={window.location.origin}
+			cacheLocation={'localstorage'}
+			useRefreshTokens={true}
+			maxAge={604800} // 7 days
 		>
 			<WagmiConfig client={wagmiClient}>
-				<ContractContextProvider>
-					<RainbowKitProvider
-						modalSize="compact"
-						coolMode
-						chains={chains}
-					>
-						<ColorModeScript />
-						<App />
-					</RainbowKitProvider>
-				</ContractContextProvider>
+				<AlertProvider>
+					<ContractContextProvider>
+						<RainbowKitProvider
+							modalSize="compact"
+							coolMode
+							chains={chains}
+						>
+							<ColorModeScript />
+							<App />
+						</RainbowKitProvider>
+					</ContractContextProvider>
+				</AlertProvider>
 			</WagmiConfig>
 		</Auth0Provider>
 	</React.StrictMode>
