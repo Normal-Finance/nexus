@@ -19,7 +19,9 @@ contract Nexus {
     }
 
     /* ========== STATE VARIABLES ========== */
-    Authorizer public authorizer;
+    Authorizer private authorizer;
+    address payable private feeController;
+    uint16 private fee;
 
     mapping(bytes32 => Profile) private profiles;
 
@@ -33,6 +35,11 @@ contract Nexus {
     modifier onlyAuthorized(bytes32 hash) {
         bool isAuthorized = authorizer.requireAuthorization(hash);
         require(isAuthorized, "Caller must be authorized");
+        _;
+    }
+
+    modifier sufficientPayment() {
+        require(msg.value >= fee, "Insufficient payment");
         _;
     }
 
@@ -50,8 +57,14 @@ contract Nexus {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(Authorizer _authorizer) {
+    constructor(
+        Authorizer _authorizer,
+        address payable _feeController,
+        uint16 _fee
+    ) {
         authorizer = _authorizer;
+        feeController = _feeController;
+        fee = _fee;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -64,7 +77,7 @@ contract Nexus {
         string memory description,
         string memory provider,
         string memory chain
-    ) external onlyAuthorized(hash) {
+    ) external payable onlyAuthorized(hash) sufficientPayment {
         Profile storage profile = profiles[hash];
         profile.owner = msg.sender;
 
@@ -82,8 +95,10 @@ contract Nexus {
 
     function deleteProfile(bytes32 hash)
         external
+        payable
         onlyOwner(hash)
         onlyAuthorized(hash)
+        sufficientPayment
         returns (bool success)
     {
         delete profiles[hash];
@@ -100,7 +115,7 @@ contract Nexus {
         string memory description,
         string memory provider,
         string memory chain
-    ) external onlyOwner(hash) onlyAuthorized(hash) {
+    ) external payable onlyOwner(hash) onlyAuthorized(hash) sufficientPayment {
         Wallet memory newWallet = Wallet(
             walletAddress,
             name,
@@ -124,10 +139,17 @@ contract Nexus {
 
     function updateWallet(
         bytes32 hash,
-        uint256 index,
+        uint8 index,
         string memory name,
         string memory description
-    ) external onlyOwner(hash) onlyAuthorized(hash) returns (bool success) {
+    )
+        external
+        payable
+        onlyOwner(hash)
+        onlyAuthorized(hash)
+        sufficientPayment
+        returns (bool success)
+    {
         Wallet storage currentWallet = profiles[hash].wallets[index];
 
         currentWallet.name = name;
@@ -140,10 +162,12 @@ contract Nexus {
         return true;
     }
 
-    function deleteWallet(bytes32 hash, uint256 index)
+    function deleteWallet(bytes32 hash, uint8 index)
         external
+        payable
         onlyOwner(hash)
         onlyAuthorized(hash)
+        sufficientPayment
         returns (bool success)
     {
         string memory deletedAddress = profiles[hash]
@@ -156,4 +180,34 @@ contract Nexus {
     }
 
     /* ========== INTERNAL FUNCTIONS ========== */
+
+    // FEE CONTROLLER
+    function adjustFee(uint16 _adjustedFee) external returns (uint16) {
+        require(
+            msg.sender == feeController,
+            "msg.sender must be feeController"
+        );
+        fee = _adjustedFee;
+        return fee;
+    }
+
+    function withdrawPayments(uint256 _amount) external {
+        require(
+            msg.sender == feeController,
+            "msg.sender must be feeController"
+        );
+        require(
+            address(this).balance >= _amount,
+            "Cannot withdraw more than the amount in the contract"
+        );
+        feeController.transfer(_amount);
+    }
+
+    function changeFeeController(address payable _newFeeController) external {
+        require(
+            msg.sender == feeController,
+            "msg.sender must be feeController"
+        );
+        feeController = _newFeeController;
+    }
 }
