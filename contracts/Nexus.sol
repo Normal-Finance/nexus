@@ -32,7 +32,7 @@ contract Nexus {
 
     modifier onlyAuthorized(bytes32 hash) {
         bool isAuthorized = authorizer.requireAuthorization(hash);
-        require(isAuthorized == true, "Caller must be authorized");
+        require(isAuthorized, "Caller must be authorized");
         _;
     }
 
@@ -42,11 +42,11 @@ contract Nexus {
 
     event ProfileDeleteEvent(bytes32 indexed hash);
 
-    event WalletCreateEvent(bytes32 indexed hash, string _address);
+    event WalletCreateEvent(bytes32 indexed hash, string walletAddress);
 
-    event WalletUpdateEvent(bytes32 indexed hash, string _address);
+    event WalletUpdateEvent(bytes32 indexed hash, string walletAddress);
 
-    event WalletDeleteEvent(bytes32 indexed hash, string _address);
+    event WalletDeleteEvent(bytes32 indexed hash, string walletAddress);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -57,31 +57,31 @@ contract Nexus {
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     // PROFILE
-    function createProfile(bytes32 hash) public onlyAuthorized(hash) {
-        Profile storage profile = profiles[hash];
-        profile.owner = msg.sender;
-
-        emit ProfileCreateEvent(hash);
-    }
-
-    function createProfileWithWallet(
+    function createProfile(
         bytes32 hash,
-        string memory _address,
+        string memory walletAddress,
         string memory name,
         string memory description,
         string memory provider,
         string memory chain
-    ) public onlyAuthorized(hash) {
+    ) external onlyAuthorized(hash) {
         Profile storage profile = profiles[hash];
         profile.owner = msg.sender;
 
-        this.insertWallet(hash, _address, name, description, provider, chain);
+        Wallet memory newWallet = Wallet(
+            walletAddress,
+            name,
+            description,
+            provider,
+            chain
+        );
+        profile.wallets.push(newWallet);
 
         emit ProfileCreateEvent(hash);
     }
 
     function deleteProfile(bytes32 hash)
-        public
+        external
         onlyOwner(hash)
         onlyAuthorized(hash)
         returns (bool success)
@@ -95,14 +95,14 @@ contract Nexus {
     // WALLET
     function insertWallet(
         bytes32 hash,
-        string memory _address,
+        string memory walletAddress,
         string memory name,
         string memory description,
         string memory provider,
         string memory chain
-    ) public onlyOwner(hash) onlyAuthorized(hash) {
+    ) external onlyOwner(hash) onlyAuthorized(hash) {
         Wallet memory newWallet = Wallet(
-            _address,
+            walletAddress,
             name,
             description,
             provider,
@@ -110,11 +110,11 @@ contract Nexus {
         );
         profiles[hash].wallets.push(newWallet);
 
-        emit WalletCreateEvent(hash, _address);
+        emit WalletCreateEvent(hash, walletAddress);
     }
 
     function getWallets(bytes32 hash)
-        public
+        external
         view
         onlyAuthorized(hash)
         returns (Wallet[] memory _wallets)
@@ -127,27 +127,28 @@ contract Nexus {
         uint256 index,
         string memory name,
         string memory description
-    )
-        public
-        onlyOwner(hash)
-        onlyAuthorized(hash)
-        returns (Wallet memory wallet)
-    {
-        profiles[hash].wallets[index].name = name;
-        profiles[hash].wallets[index].description = description;
+    ) external onlyOwner(hash) onlyAuthorized(hash) returns (bool success) {
+        Wallet storage currentWallet = profiles[hash].wallets[index];
 
-        emit WalletUpdateEvent(hash, profiles[hash].wallets[index]._address);
+        currentWallet.name = name;
+        currentWallet.description = description;
 
-        return profiles[hash].wallets[index];
+        emit WalletUpdateEvent(
+            hash,
+            profiles[hash].wallets[index].walletAddress
+        );
+        return true;
     }
 
     function deleteWallet(bytes32 hash, uint256 index)
-        public
+        external
         onlyOwner(hash)
         onlyAuthorized(hash)
         returns (bool success)
     {
-        string memory deletedAddress = profiles[hash].wallets[index]._address;
+        string memory deletedAddress = profiles[hash]
+            .wallets[index]
+            .walletAddress;
         delete profiles[hash].wallets[index];
 
         emit WalletDeleteEvent(hash, deletedAddress);

@@ -32,7 +32,7 @@ contract Authorizer {
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function requireAuthorization(bytes32 hash)
-        public
+        external
         view
         returns (bool success)
     {
@@ -40,7 +40,7 @@ contract Authorizer {
     }
 
     function getAuthorizationStatus(bytes32 hash)
-        public
+        external
         view
         returns (AuthorizationState)
     {
@@ -50,7 +50,7 @@ contract Authorizer {
     function updateAuthorizationStatus(
         bytes32 hash,
         AuthorizationState authStatus
-    ) public onlyOwner returns (bool success) {
+    ) external onlyOwner returns (bool success) {
         authorizations[hash] = authStatus;
 
         emit AuthorizationUpdateEvent(hash, authStatus);
