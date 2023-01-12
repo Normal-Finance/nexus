@@ -19,8 +19,10 @@ import {
 	WhatsappIcon,
 } from 'react-share';
 import { nexusConfig } from '../../config';
+import Donate from './Donate';
 
 const SocialShare = () => {
+	const iconSize = 30;
 	return (
 		<div>
 			<Stack align={'center'}>
@@ -35,7 +37,7 @@ const SocialShare = () => {
 					quote={nexusConfig.share.title}
 					style={{ marginRight: '0.5rem' }}
 				>
-					<FacebookIcon size={32} round />
+					<FacebookIcon size={iconSize} round />
 				</FacebookShareButton>
 
 				{/* Messenger */}
@@ -44,7 +46,7 @@ const SocialShare = () => {
 					appId="521270401588372"
 					style={{ marginRight: '0.5rem' }}
 				>
-					<FacebookMessengerIcon size={32} round />
+					<FacebookMessengerIcon size={iconSize} round />
 				</FacebookMessengerShareButton>
 
 				{/* Twitter */}
@@ -53,7 +55,7 @@ const SocialShare = () => {
 					title={nexusConfig.share.title}
 					style={{ marginRight: '0.5rem' }}
 				>
-					<TwitterIcon size={32} round />
+					<TwitterIcon size={iconSize} round />
 				</TwitterShareButton>
 
 				{/* Telegram */}
@@ -62,7 +64,7 @@ const SocialShare = () => {
 					title={nexusConfig.share.title}
 					style={{ marginRight: '0.5rem' }}
 				>
-					<TelegramIcon size={32} round />
+					<TelegramIcon size={iconSize} round />
 				</TelegramShareButton>
 
 				{/* Whatsapp */}
@@ -72,7 +74,7 @@ const SocialShare = () => {
 					separator=":: "
 					style={{ marginRight: '0.5rem' }}
 				>
-					<WhatsappIcon size={32} round />
+					<WhatsappIcon size={iconSize} round />
 				</WhatsappShareButton>
 
 				{/* LinkedIn */}
@@ -80,7 +82,7 @@ const SocialShare = () => {
 					url={nexusConfig.share.url}
 					style={{ marginRight: '0.5rem' }}
 				>
-					<LinkedinIcon size={32} round />
+					<LinkedinIcon size={iconSize} round />
 				</LinkedinShareButton>
 
 				{/* Reddit */}
@@ -91,7 +93,7 @@ const SocialShare = () => {
 					windowHeight={460}
 					style={{ marginRight: '0.5rem' }}
 				>
-					<RedditIcon size={32} round />
+					<RedditIcon size={iconSize} round />
 				</RedditShareButton>
 
 				{/* Email */}
@@ -101,9 +103,11 @@ const SocialShare = () => {
 					body="body"
 					style={{ marginRight: '0.5rem' }}
 				>
-					<EmailIcon size={32} round />
+					<EmailIcon size={iconSize} round />
 				</EmailShareButton>
 			</div>
+
+			<Donate />
 		</div>
 	);
 };
