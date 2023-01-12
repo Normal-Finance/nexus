@@ -1,69 +1,73 @@
 // Modules
 import React from 'react';
-import {
-	Flex,
-	Stack,
-	Alert,
-	AlertIcon,
-	AlertTitle,
-	AlertDescription,
-} from '@chakra-ui/react';
+import { Spinner, Stack } from '@chakra-ui/react';
 
 // Hooks
 import { useAccount } from 'wagmi';
 
 // Components
-import WalletConnectors from '../components/home/WalletConnectors';
+import UpdateProfileForm from '../components/home/UpdateProfileForm';
 import Header from '../components/home/Header';
 import Main from '../components/layout/Main';
 import Search from '../components/home/Search';
 import SocialShare from '../components/home/SocialShare';
+import Donate from '../components/home/Donate';
+import ConnectWalletAlert from '../components/home/ConnectWalletAlert';
+import { useContract } from '../contexts/ContractContext';
+import VerifyUser from '../components/home/VerifyUser';
+import Error from '../components/other/Error';
 
 const Home = () => {
 	// Hooks
 	const { isConnected } = useAccount();
+	const { getWallets } = useContract();
 
 	// State
 	const [searchValue, setSearchValue] = React.useState('');
 
 	return (
 		<Main>
-			{isConnected && (
-				<Search value={searchValue} handleChange={setSearchValue} />
-			)}
+			<Search value={searchValue} handleChange={setSearchValue} />
 
 			{searchValue === '' && (
-				<Flex align={'center'} justify={'center'}>
-					<Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
-						<Header />
-						{isConnected ? (
-							<WalletConnectors />
-						) : (
-							<Alert
-								status="info"
-								variant="subtle"
-								flexDirection="column"
-								alignItems="center"
-								justifyContent="center"
-								textAlign="center"
-								height="200px"
-							>
-								<AlertIcon boxSize="40px" mr={0} />
-								<AlertTitle mt={4} mb={1} fontSize="lg">
-									Connect your wallet
-								</AlertTitle>
-								<AlertDescription maxWidth="sm">
-									Please connect the wallet you'd like to
-									manage your public profile with. If you lose
-									access to this wallet, you won't be able to
-									edit your Nexus profile.
-								</AlertDescription>
-							</Alert>
-						)}
+				<Stack spacing={12} mx={'auto'} maxW={'xl'} py={12} px={6}>
+					<Header />
 
-						<SocialShare />
-					</Stack>
-				</Flex>
+					{/* Loading */}
+					{getWallets.isLoading && <Spinner />}
+
+					{/* Done loading */}
+					{!getWallets.isLoading && (
+						<>
+							{/* Error */}
+							{getWallets.isError && (
+								<>
+									{getWallets?.error?.reason ===
+									'Caller must be authorized' ? (
+										<VerifyUser />
+									) : (
+										<Error
+											message={
+												'We were unable to load your wallets'
+											}
+										/>
+									)}
+								</>
+							)}
+
+							{/* No error */}
+							{!getWallets.isError && (
+								<>
+									{isConnected && <UpdateProfileForm />}
+									{!isConnected && <ConnectWalletAlert />}
+								</>
+							)}
+						</>
+					)}
+
+					{/* <SocialShare />
+					<Donate /> */}
+				</Stack>
 			)}
 		</Main>
 	);

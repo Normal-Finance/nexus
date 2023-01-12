@@ -9,7 +9,15 @@ import Signin from './pages/Signin';
 import Home from './pages/Home';
 
 export const App = () => {
-	const { isAuthenticated } = useAuth0();
+	const { isAuthenticated, isLoading, logout } = useAuth0();
+
+	// if (isLoading) {
+	// 	return <div>Loading ...
+	// 		{/* <button onClick={logout({
+	// 									returnTo: window.location.origin,
+	// 								})}>Log out</button> */}
+	// 	</div>;
+	// }
 
 	return (
 		<ChakraProvider theme={theme}>

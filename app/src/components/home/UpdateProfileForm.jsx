@@ -18,12 +18,14 @@ import { Field, Form, Formik } from 'formik';
 import { chains, providers } from '../../constants';
 
 // Hooks
-import { useAuth0 } from '@auth0/auth0-react';
 import { useContract } from '../../contexts/ContractContext';
+import { useWaitForTransaction } from 'wagmi';
+import { useEffect } from 'react';
+import { useAlert } from '../../contexts/AlertContext';
 
-const WalletConnectors = () => {
+const UpdateProfileForm = () => {
 	// Hooks
-	const { user } = useAuth0();
+	const { alertSuccess, alertError } = useAlert();
 	const {
 		getWallets,
 		createProfile,
@@ -31,25 +33,34 @@ const WalletConnectors = () => {
 		insertWallet,
 		executeInsertWallet,
 	} = useContract();
+	const { status: createProfileTxStatus } = useWaitForTransaction({
+		hash: createProfile.data?.hash || '',
+	});
+	const { status: insertWalletTxStatus } = useWaitForTransaction({
+		hash: insertWallet.data?.hash || '',
+	});
 
-	const _createProfile = async () => {
-		try {
-			const url = `${process.env.REACT_APP_NEXUS_API_PATH}/profile`;
-			const requestOptions = {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'x-api-key': process.env.REACT_APP_NEXUS_API_KEY,
-				},
-				body: JSON.stringify({ email: user.email, isServerSide: '' }),
-			};
-			const response = await fetch(url, requestOptions);
-			const json = await response.json();
-			console.log(json);
-		} catch (error) {
-			console.log('error', error);
+	useEffect(() => {
+		if (createProfileTxStatus === 'error') {
+			alertError('an error occured');
+		} else if (createProfileTxStatus === 'success') {
+			setTimeout(
+				() => alertSuccess('Profile created successfully'),
+				2000
+			);
 		}
-	};
+	}, [createProfileTxStatus]);
+
+	useEffect(() => {
+		if (insertWalletTxStatus === 'error') {
+			alertError('an error occured');
+		} else if (insertWalletTxStatus === 'success') {
+			setTimeout(
+				() => alertSuccess('Wallet inserted successfully'),
+				2000
+			);
+		}
+	}, [insertWalletTxStatus]);
 
 	// Validation
 	function validateField(value) {
@@ -253,33 +264,32 @@ const WalletConnectors = () => {
 														'linear(to-r, red.400,pink.400)',
 													boxShadow: 'xl',
 												}}
-												// loadingText={
-												// 	<>
-												// 		{insertWallet.loading &&
-												// 			'Waiting for approval'}
-												// 		{insertWallet.started &&
-												// 			'Creating profile...'}
-												// 	</>
-												// }
-												// isLoading={
-												// 	createProfile.loading ||
-												// 	createProfile.started
-												// }
+												loadingText={
+													<>
+														{createProfile.loading &&
+															'Waiting for approval'}
+														{createProfile.started &&
+															'Creating profile...'}
+													</>
+												}
+												isLoading={
+													createProfile.loading ||
+													createProfile.started
+												}
 												type="submit"
-												// disabled={
-												// 	!createProfile ||
-												// 	createProfile.loading ||
-												// 	createProfile.started
-												// }
+												disabled={
+													!createProfile ||
+													createProfile.loading ||
+													createProfile.started
+												}
 											>
-												{/* {createProfile.loading &&
+												{createProfile.loading &&
 													'Waiting for approval'}
 												{createProfile.started &&
 													'Creating profile...'}
 												{!createProfile.loading &&
 													!createProfile.started &&
-													'Create profile'} */}
-												Create profile
+													'Create profile'}
 											</Button>
 											<Text align={'center'}>
 												Add your first wallet to create
@@ -337,4 +347,4 @@ const WalletConnectors = () => {
 	);
 };
 
-export default WalletConnectors;
+export default UpdateProfileForm;

@@ -61,19 +61,12 @@ const WalletOptions = ({ isOpen, wallet, walletIndex, onClose }) => {
 							<ModalCloseButton />
 							<ModalBody pb={6}>
 								<Tag variant="solid" colorScheme="blue">
-									<Avatar
-										src={`/walletProviders/${wallet?.provider}.png`}
-										size="xs"
-										name={wallet?.provider}
-										ml={-1}
-										mr={2}
-									/>
-									<TagLabel>{wallet?.provider}</TagLabel>
+									{wallet?.provider}
 								</Tag>
 								<Tag variant="solid" colorScheme="teal">
 									{wallet?.chain}
 								</Tag>
-								<Code>{wallet?._address}</Code>
+								<Code>{wallet?.walletAddress}</Code>
 
 								<Form>
 									{/* Name */}

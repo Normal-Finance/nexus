@@ -10,7 +10,7 @@ const ContractContext = createContext();
 
 export const ContractContextProvider = ({ children }) => {
 	// Hooks
-	const { user } = useAuth0();
+	const { user, isAuthenticated } = useAuth0();
 
 	// State
 	const [userHash, setUserHash] = useState('');
@@ -20,6 +20,8 @@ export const ContractContextProvider = ({ children }) => {
 	const {
 		data: createProfileData,
 		write: createProfile,
+		error: createProfileError,
+		isError: isCreateProfileError,
 		isLoading: isCreateProfileLoading,
 		isSuccess: isCreateProfileStarted,
 	} = useContractWrite({
@@ -32,8 +34,12 @@ export const ContractContextProvider = ({ children }) => {
 	// getWallets
 	const {
 		data: getWalletsData,
+		error: getWalletsError,
+		isError: isGetWalletsError,
 		isLoading: isGetWalletsLoading,
 		isSuccess: isGetWalletsStarted,
+		refetch: refetchGetWallets,
+		isRefetching: isGetWalletsRefetching,
 	} = useContractRead({
 		address: NexusContract.address,
 		abi: NexusContract.abi,
@@ -45,6 +51,8 @@ export const ContractContextProvider = ({ children }) => {
 	const {
 		data: deleteProfileData,
 		write: deleteProfile,
+		error: deleteProfileError,
+		isError: isDeleteProfileError,
 		isLoading: isDeleteProfileLoading,
 		isSuccess: isDeleteProfileStarted,
 	} = useContractWrite({
@@ -54,10 +62,27 @@ export const ContractContextProvider = ({ children }) => {
 		functionName: 'deleteProfile',
 	});
 
+	// updateWallet
+	const {
+		data: updateWalletData,
+		write: updateWallet,
+		error: updateWalletError,
+		isError: isUpdateWalletError,
+		isLoading: isUpdateWalletLoading,
+		isSuccess: isUpdateWalletStarted,
+	} = useContractWrite({
+		mode: 'recklesslyUnprepared',
+		address: NexusContract.address,
+		abi: NexusContract.abi,
+		functionName: 'updateWallet',
+	});
+
 	// insertWallet
 	const {
 		data: insertWalletData,
 		write: insertWallet,
+		error: insertWalletError,
+		isError: isInsertWalletError,
 		isLoading: isInsertWalletLoading,
 		isSuccess: isInsertWalletStarted,
 	} = useContractWrite({
@@ -71,6 +96,8 @@ export const ContractContextProvider = ({ children }) => {
 	const {
 		data: deleteWalletData,
 		write: deleteWallet,
+		error: deleteWalletError,
+		isError: isDeleteWalletError,
 		isLoading: isDeleteWalletLoading,
 		isSuccess: isDeleteWalletStarted,
 	} = useContractWrite({
@@ -102,42 +129,60 @@ export const ContractContextProvider = ({ children }) => {
 			}
 		}
 
-		fetchData();
-	}, [user]);
+		if (isAuthenticated) fetchData();
+	}, [isAuthenticated]);
 
 	/** FUNCTIONS */
-	const verifyUser = async () => {
-		try {
-			const url = `${process.env.REACT_APP_NEXUS_API_PATH}/user/verify`;
-			const requestOptions = {
-				method: 'POST',
-				headers: {
-					'x-api-key': process.env.REACT_APP_NEXUS_API_KEY,
-				},
-				body: JSON.stringify({ email: user?.email || '' }),
-			};
-			const response = await fetch(url, requestOptions);
-			const json = await response.json();
-			console.log(json);
-		} catch (error) {
-			console.log('error', error);
-		}
-	};
-
-	const executeCreateProfile = () => {
-		createProfile?.(userHash);
+	const executeCreateProfile = (
+		address,
+		name,
+		description,
+		provider,
+		chain
+	) => {
+		createProfile?.({
+			recklesslySetUnpreparedArgs: [
+				userHash,
+				address,
+				name,
+				description,
+				provider,
+				chain,
+			],
+		});
 	};
 
 	const executeDeleteProfile = () => {
-		deleteProfile?.(userHash);
+		deleteProfile?.({ recklesslySetUnpreparedArgs: [userHash] });
 	};
 
-	const executeInsertWallet = () => {
-		insertWallet?.(userHash);
+	const executeUpdateWallet = (index, name, description) => {
+		updateWallet?.({
+			recklesslySetUnpreparedArgs: [userHash, index, name, description],
+		});
 	};
 
-	const executeDeleteWallet = () => {
-		deleteWallet?.(userHash);
+	const executeInsertWallet = (
+		address,
+		name,
+		description,
+		provider,
+		chain
+	) => {
+		insertWallet?.({
+			recklesslySetUnpreparedArgs: [
+				userHash,
+				address,
+				name,
+				description,
+				provider,
+				chain,
+			],
+		});
+	};
+
+	const executeDeleteWallet = (index) => {
+		deleteWallet?.({ recklesslySetUnpreparedArgs: [userHash, index] });
 	};
 
 	return (
@@ -146,29 +191,49 @@ export const ContractContextProvider = ({ children }) => {
 				userHash,
 				createProfile: {
 					data: createProfileData,
+					isError: isCreateProfileLoading,
+					error: createProfileError,
 					loading: isCreateProfileLoading,
 					started: isCreateProfileStarted,
 				},
 				executeCreateProfile,
 				deleteProfile: {
 					data: deleteProfileData,
+					isError: isDeleteProfileLoading,
+					error: deleteProfileError,
 					loading: isDeleteProfileLoading,
 					started: isDeleteProfileStarted,
 				},
 				executeDeleteProfile,
 				getWallets: {
 					data: getWalletsData,
+					isError: isGetWalletsError,
+					error: getWalletsError,
 					loading: isGetWalletsLoading,
 					started: isGetWalletsStarted,
+					refetch: refetchGetWallets,
+					isRefetching: isGetWalletsRefetching,
 				},
+				updateWallet: {
+					data: updateWalletData,
+					isError: isUpdateWalletLoading,
+					error: updateWalletError,
+					loading: isUpdateWalletLoading,
+					started: isUpdateWalletStarted,
+				},
+				executeUpdateWallet,
 				insertWallet: {
 					data: insertWalletData,
+					isError: isInsertWalletLoading,
+					error: insertWalletError,
 					loading: isInsertWalletLoading,
 					started: isInsertWalletStarted,
 				},
 				executeInsertWallet,
 				deleteWallet: {
 					data: deleteWalletData,
+					isError: isDeleteWalletLoading,
+					error: deleteWalletError,
 					loading: isDeleteWalletLoading,
 					started: isDeleteWalletStarted,
 				},
